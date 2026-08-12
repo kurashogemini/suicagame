@@ -190,39 +190,45 @@ export class GameEngine {
       return (clientX - rect.left) * scaleX;
     };
 
-    const handleTouch = (e) => {
-      if (this.isGameOver || this.isPaused || !e.touches || !e.touches[0]) return;
-      e.preventDefault();
-      this.updatePointerX(getCanvasPos(e.touches[0].clientX));
+    const handlePointerMove = (clientX) => {
+      if (this.isGameOver || this.isPaused) return;
+      this.updatePointerX(getCanvasPos(clientX));
     };
 
-    // Mouse movement
-    this.canvas.addEventListener('mousemove', (e) => {
-      if (this.isGameOver || this.isPaused) return;
-      this.updatePointerX(getCanvasPos(e.clientX));
-    });
-
-    // Mouse click drop
-    this.canvas.addEventListener('click', (e) => {
+    const handleActionDrop = (clientX) => {
       if (this.isGameOver || this.isPaused) return;
       sound.init();
+      if (clientX !== undefined) {
+        this.updatePointerX(getCanvasPos(clientX));
+      }
       this.dropCurrentSushi();
+    };
+
+    // Canvas & Container Pointer Events (Unified Mouse / Touch / Pen)
+    const container = this.canvas.parentElement || this.canvas;
+
+    container.addEventListener('pointermove', (e) => {
+      handlePointerMove(e.clientX);
     });
 
-    // Touch support (touchstart + touchmove + touchend)
-    this.canvas.addEventListener('touchstart', (e) => {
-      sound.init();
-      handleTouch(e);
-    }, { passive: false });
-
-    this.canvas.addEventListener('touchmove', (e) => {
-      handleTouch(e);
-    }, { passive: false });
-
-    this.canvas.addEventListener('touchend', (e) => {
-      if (this.isGameOver || this.isPaused) return;
-      this.dropCurrentSushi();
+    container.addEventListener('pointerdown', (e) => {
+      handleActionDrop(e.clientX);
     });
+
+    // Touch support fallback for older browsers
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) {
+        e.preventDefault();
+        handleActionDrop(e.touches[0].clientX);
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches[0]) {
+        e.preventDefault();
+        handlePointerMove(e.touches[0].clientX);
+      }
+    }, { passive: false });
 
     // Keyboard support
     window.addEventListener('keydown', (e) => {
