@@ -1,7 +1,7 @@
-// UI Controller for "すしころ回転祭" (Sushi Express)
+// UI Controller for Mofuland Animal Game (動物ゲーム)
 
-import { SUSHI_ITEMS } from './sushi.js';
-import { drawSushi } from './renderer.js';
+import { ANIMALS } from './animals.js';
+import { drawAnimal } from './renderer.js';
 import { sound } from './audio.js';
 
 export class UIController {
@@ -58,7 +58,7 @@ export class UIController {
     if (!this.evolutionContainer) return;
     this.evolutionContainer.innerHTML = '';
 
-    SUSHI_ITEMS.forEach((item, idx) => {
+    ANIMALS.forEach((item, idx) => {
       const itemEl = document.createElement('div');
       itemEl.className = 'evolution-item';
       itemEl.title = `${item.nameJa} (${item.name}) - ${item.score}pt`;
@@ -69,7 +69,7 @@ export class UIController {
       const ctx = canvas.getContext('2d');
 
       const scaleRadius = Math.min(18, 8 + idx * 1.1);
-      drawSushi(ctx, 22, 22, scaleRadius, item, 0, true);
+      drawAnimal(ctx, 22, 22, scaleRadius, item, 0, true);
 
       const label = document.createElement('span');
       label.className = 'evolution-label';
@@ -79,7 +79,7 @@ export class UIController {
       itemEl.appendChild(label);
       this.evolutionContainer.appendChild(itemEl);
 
-      if (idx < SUSHI_ITEMS.length - 1) {
+      if (idx < ANIMALS.length - 1) {
         const arrow = document.createElement('span');
         arrow.className = 'evolution-arrow';
         arrow.textContent = '➔';
@@ -103,15 +103,15 @@ export class UIController {
     const h = this.nextCanvasEl.height;
     this.nextCtx.clearRect(0, 0, w, h);
 
-    const itemDef = SUSHI_ITEMS[tier];
+    const itemDef = ANIMALS[tier];
     const radius = Math.min(22, itemDef.radius * 0.75);
-    drawSushi(this.nextCtx, w / 2, h / 2, radius, itemDef, 0, true);
+    drawAnimal(this.nextCtx, w / 2, h / 2, radius, itemDef, 0, true);
   }
 
   showGameOver(stats) {
     if (this.finalScoreEl) this.finalScoreEl.textContent = stats.score.toLocaleString();
     if (this.finalBestEl) this.finalBestEl.textContent = stats.bestScore.toLocaleString();
-    if (this.finalMergedEl) this.finalMergedEl.textContent = (stats.sushiMerged || 0).toString();
+    if (this.finalMergedEl) this.finalMergedEl.textContent = (stats.animalsMerged || 0).toString();
 
     if (this.newRecordBadge) {
       this.newRecordBadge.style.display = stats.isNewRecord ? 'inline-block' : 'none';
@@ -135,7 +135,6 @@ export class UIController {
   }
 
   bindEvents() {
-
     if (this.retryBtn) {
       this.retryBtn.addEventListener('click', () => {
         sound.playClick();
