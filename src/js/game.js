@@ -1,9 +1,9 @@
-// Suika Game Engine & Physics Management using Matter.js
+// Animal Game Engine & Physics Management using Matter.js
 
 import Matter from 'matter-js';
 import confetti from 'canvas-confetti';
-import { FRUITS, getRandomSpawnTier } from './fruits.js';
-import { drawFruit } from './renderer.js';
+import { ANIMALS, getRandomSpawnTier } from './animals.js';
+import { drawAnimal } from './renderer.js';
 import { sound } from './audio.js';
 import { ParticleSystem } from './particles.js';
 
@@ -33,15 +33,15 @@ export class GameEngine {
 
     // Game state variables
     this.score = 0;
-    this.bestScore = parseInt(localStorage.getItem('suica_best_score') || '0', 10);
-    this.fruitsMerged = 0;
+    this.bestScore = parseInt(localStorage.getItem('animal_best_score') || '0', 10);
+    this.animalsMerged = 0;
     this.isGameOver = false;
     this.isPaused = false;
     this.canDrop = true;
     this.inDanger = false;
     this.dangerTimer = 0; // seconds spent in danger state
 
-    // Current and Next Dropping Fruits
+    // Current and Next Dropping Animals
     this.currentTier = getRandomSpawnTier();
     this.nextTier = getRandomSpawnTier();
     this.pointerX = this.width / 2;
@@ -109,10 +109,10 @@ export class GameEngine {
         const bodyA = pair.bodyA;
         const bodyB = pair.bodyB;
 
-        // Check if both bodies are fruits
-        if (bodyA.isFruit && bodyB.isFruit) {
+        // Check if both bodies are animals
+        if (bodyA.isAnimal && bodyB.isAnimal) {
           if (
-            bodyA.fruitTier === bodyB.fruitTier &&
+            bodyA.animalTier === bodyB.animalTier &&
             !bodyA.isMerged &&
             !bodyB.isMerged
           ) {
@@ -120,58 +120,58 @@ export class GameEngine {
             bodyA.isMerged = true;
             bodyB.isMerged = true;
 
-            const tier = bodyA.fruitTier;
+            const tier = bodyA.animalTier;
             const midX = (bodyA.position.x + bodyB.position.x) / 2;
             const midY = (bodyA.position.y + bodyB.position.y) / 2;
 
             toRemove.push(bodyA, bodyB);
 
             // Calculate points & update score
-            const addedScore = FRUITS[tier].score;
+            const addedScore = ANIMALS[tier].score;
             this.addScore(addedScore);
-            this.fruitsMerged++;
+            this.animalsMerged++;
 
             const nextTier = tier + 1;
 
-            if (nextTier < FRUITS.length) {
-              // Spawn merged higher tier fruit
-              const fruitDef = FRUITS[nextTier];
-              const newBody = Matter.Bodies.circle(midX, midY, fruitDef.radius, {
+            if (nextTier < ANIMALS.length) {
+              // Spawn merged higher tier animal
+              const itemDef = ANIMALS[nextTier];
+              const newBody = Matter.Bodies.circle(midX, midY, itemDef.radius, {
                 restitution: 0.25,
                 friction: 0.1,
                 density: 0.001 * (1 + nextTier * 0.1),
               });
 
-              newBody.isFruit = true;
-              newBody.fruitTier = nextTier;
+              newBody.isAnimal = true;
+              newBody.animalTier = nextTier;
               newBody.isMerged = false;
 
               Matter.Composite.add(this.engine.world, newBody);
 
               // Sound & visual effects
-              if (nextTier === 10) { // Watermelon
-                sound.playWatermelon();
+              if (nextTier === 10) { // Elephant
+                sound.playWatermelon(); // Grand fanfare
                 confetti({
-                  particleCount: 80,
-                  spread: 70,
+                  particleCount: 100,
+                  spread: 80,
                   origin: { y: 0.6 },
                 });
               } else {
                 sound.playMerge(nextTier);
               }
 
-              this.particles.spawnMergeBurst(midX, midY, fruitDef.color);
+              this.particles.spawnMergeBurst(midX, midY, itemDef.color);
               this.particles.spawnScorePopup(midX, midY, addedScore);
             } else {
-              // Merge 2 Watermelons (Double Suika)
+              // Merge 2 Elephants
               this.addScore(4096);
               sound.playWatermelon();
               confetti({
-                particleCount: 150,
-                spread: 100,
+                particleCount: 180,
+                spread: 120,
                 origin: { y: 0.5 },
               });
-              this.particles.spawnMergeBurst(midX, midY, '#2B9348', 25);
+              this.particles.spawnMergeBurst(midX, midY, '#457B9D', 30);
               this.particles.spawnScorePopup(midX, midY, 4096, '#FFD700');
             }
           }
@@ -188,8 +188,15 @@ export class GameEngine {
   initInputListeners() {
     const getCanvasPos = (clientX) => {
       const rect = this.canvas.getBoundingClientRect();
-      const scaleX = this.width / rect.width;
+      const scaleX = rect.width ? (this.width / rect.width) : 1;
       return (clientX - rect.left) * scaleX;
+    };
+
+    // Touch event helper
+    const handleTouch = (e) => {
+      if (this.isGameOver || this.isPaused || !e.touches || !e.touches[0]) return;
+      e.preventDefault();
+      this.updatePointerX(getCanvasPos(e.touches[0].clientX));
     };
 
     // Mouse movement
@@ -201,68 +208,74 @@ export class GameEngine {
     // Mouse click drop
     this.canvas.addEventListener('click', (e) => {
       if (this.isGameOver || this.isPaused) return;
-      this.dropCurrentFruit();
+      sound.init(); // Ensure Web Audio API unlocks on user gesture
+      this.dropCurrentAnimal();
     });
 
-    // Touch support
+    // Touch support (touchstart + touchmove + touchend)
+    this.canvas.addEventListener('touchstart', (e) => {
+      sound.init();
+      handleTouch(e);
+    }, { passive: false });
+
     this.canvas.addEventListener('touchmove', (e) => {
-      if (this.isGameOver || this.isPaused || !e.touches[0]) return;
-      e.preventDefault();
-      this.updatePointerX(getCanvasPos(e.touches[0].clientX));
+      handleTouch(e);
     }, { passive: false });
 
     this.canvas.addEventListener('touchend', (e) => {
       if (this.isGameOver || this.isPaused) return;
-      this.dropCurrentFruit();
+      this.dropCurrentAnimal();
     });
 
     // Keyboard support (Left/Right arrows to move, Space/Down to drop)
     window.addEventListener('keydown', (e) => {
       if (this.isGameOver || this.isPaused) return;
+      sound.init();
 
-      const step = 20;
+      const step = 22;
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
         this.updatePointerX(this.pointerX - step);
       } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
         this.updatePointerX(this.pointerX + step);
       } else if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        this.dropCurrentFruit();
+        this.dropCurrentAnimal();
       }
     });
   }
 
   updatePointerX(x) {
-    const currentRadius = FRUITS[this.currentTier].radius;
+    const currentRadius = ANIMALS[this.currentTier].radius;
     const minX = this.boxLeft + currentRadius + 5;
     const maxX = this.boxRight - currentRadius - 5;
     this.pointerX = Math.max(minX, Math.min(maxX, x));
   }
 
-  dropCurrentFruit() {
+  dropCurrentAnimal() {
     if (!this.canDrop || this.isGameOver || this.isPaused) return;
 
     this.canDrop = false;
     const tier = this.currentTier;
-    const fruitDef = FRUITS[tier];
+    const itemDef = ANIMALS[tier];
 
     // Create physical body
-    const body = Matter.Bodies.circle(this.pointerX, this.dropY, fruitDef.radius, {
+    const body = Matter.Bodies.circle(this.pointerX, this.dropY, itemDef.radius, {
       restitution: 0.2,
       friction: 0.1,
       density: 0.001 * (1 + tier * 0.1),
     });
 
-    body.isFruit = true;
-    body.fruitTier = tier;
+    body.isAnimal = true;
+    body.animalTier = tier;
     body.isMerged = false;
-    // Slight downward nudge
+
+    // Slight downward velocity
     Matter.Body.setVelocity(body, { x: 0, y: 1.0 });
 
     Matter.Composite.add(this.engine.world, body);
     sound.playDrop();
 
-    // Cooldown before next fruit drop
+    // Cooldown before next drop
     setTimeout(() => {
       if (this.isGameOver) return;
       this.currentTier = this.nextTier;
@@ -280,7 +293,7 @@ export class GameEngine {
     this.score += pts;
     if (this.score > this.bestScore) {
       this.bestScore = this.score;
-      localStorage.setItem('suica_best_score', this.bestScore.toString());
+      localStorage.setItem('animal_best_score', this.bestScore.toString());
     }
     if (this.onScoreUpdate) {
       this.onScoreUpdate(this.score, this.bestScore);
@@ -292,11 +305,9 @@ export class GameEngine {
     let overflow = false;
 
     for (const body of bodies) {
-      if (body.isFruit && !body.isMerged) {
-        // If fruit top crosses danger line and body is not moving rapidly downwards
+      if (body.isAnimal && !body.isMerged) {
         const topY = body.position.y - body.circleRadius;
         if (topY <= this.dangerLineY && body.position.y > 0) {
-          // Check if body is settled or moving slowly
           if (Math.abs(body.velocity.y) < 0.5) {
             overflow = true;
             break;
@@ -308,7 +319,7 @@ export class GameEngine {
     if (overflow) {
       this.inDanger = true;
       this.dangerTimer += delta;
-      if (this.dangerTimer >= 2.0) { // 2 seconds over danger line = Game Over
+      if (this.dangerTimer >= 2.0) {
         this.triggerGameOver();
       }
     } else {
@@ -327,14 +338,13 @@ export class GameEngine {
       this.onGameOver({
         score: this.score,
         bestScore: this.bestScore,
-        fruitsMerged: this.fruitsMerged,
+        animalsMerged: this.animalsMerged,
         isNewRecord: this.score === this.bestScore && this.score > 0,
       });
     }
   }
 
   restart() {
-    // Clear all bodies except walls
     const bodies = Matter.Composite.allBodies(this.engine.world);
     for (const b of bodies) {
       if (!b.isStatic) {
@@ -344,7 +354,7 @@ export class GameEngine {
 
     this.particles.clear();
     this.score = 0;
-    this.fruitsMerged = 0;
+    this.animalsMerged = 0;
     this.isGameOver = false;
     this.isPaused = false;
     this.canDrop = true;
@@ -364,12 +374,12 @@ export class GameEngine {
   }
 
   loop(time) {
-    const delta = (time - this.lastTime) / 1000;
+    const delta = Math.min((time - this.lastTime) / 1000, 0.05);
     this.lastTime = time;
 
     if (!this.isPaused && !this.isGameOver) {
-      // Advance physics engine
-      Matter.Engine.update(this.engine, Math.min(delta * 1000, 30));
+      // Use fixed timestep for rock-solid physics stability
+      Matter.Engine.update(this.engine, 1000 / 60);
       this.checkDangerAndGameOver(delta);
     }
 
@@ -383,20 +393,20 @@ export class GameEngine {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.width, this.height);
 
-    // 1. Render Glass Box Container
+    // 1. Render Container Frame
     this.renderContainer(ctx);
 
-    // 2. Render Physics Fruit Bodies
+    // 2. Render Physics Animal Bodies
     const bodies = Matter.Composite.allBodies(this.engine.world);
     for (const body of bodies) {
-      if (body.isFruit) {
-        const fruitDef = FRUITS[body.fruitTier];
-        drawFruit(
+      if (body.isAnimal) {
+        const itemDef = ANIMALS[body.animalTier];
+        drawAnimal(
           ctx,
           body.position.x,
           body.position.y,
-          fruitDef.radius,
-          fruitDef,
+          itemDef.radius,
+          itemDef,
           body.angle
         );
       }
@@ -405,11 +415,11 @@ export class GameEngine {
     // 3. Render Particles & Floating Text
     this.particles.draw(ctx);
 
-    // 4. Render Current Drop Fruit Preview & Trajectory Line (if active & can drop)
+    // 4. Render Current Dropping Animal Preview & Guide Line
     if (this.canDrop && !this.isGameOver && !this.isPaused) {
-      const currentFruit = FRUITS[this.currentTier];
+      const currentItem = ANIMALS[this.currentTier];
 
-      // Dotted Trajectory Guide Line
+      // Dotted Trajectory Line
       ctx.save();
       ctx.beginPath();
       ctx.setLineDash([6, 6]);
@@ -420,26 +430,26 @@ export class GameEngine {
       ctx.stroke();
       ctx.restore();
 
-      // Top Ready Fruit
-      drawFruit(
+      // Top Preview Animal
+      drawAnimal(
         ctx,
         this.pointerX,
         this.dropY,
-        currentFruit.radius,
-        currentFruit,
+        currentItem.radius,
+        currentItem,
         0,
         true
       );
     }
 
-    // 5. Render Danger Line & Warning Glow
+    // 5. Render Danger Line & Pulsating Glow
     this.renderDangerLine(ctx);
   }
 
   renderContainer(ctx) {
     ctx.save();
 
-    // Box Background Fill (Soft warm container gradient)
+    // Box Background Fill
     const boxGradient = ctx.createLinearGradient(0, this.boxTop, 0, this.boxBottom);
     boxGradient.addColorStop(0, 'rgba(255, 253, 240, 0.45)');
     boxGradient.addColorStop(1, 'rgba(255, 248, 220, 0.65)');
@@ -458,12 +468,9 @@ export class GameEngine {
     ctx.lineCap = 'round';
 
     ctx.beginPath();
-    // Left border
     ctx.moveTo(this.boxLeft - 6, this.boxTop - 10);
     ctx.lineTo(this.boxLeft - 6, this.boxBottom + 6);
-    // Bottom border
     ctx.lineTo(this.boxRight + 6, this.boxBottom + 6);
-    // Right border
     ctx.lineTo(this.boxRight + 6, this.boxTop - 10);
     ctx.stroke();
 

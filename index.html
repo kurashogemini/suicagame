@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>スイカゲーム (Suika Game) - Web MVP</title>
+    <title>動物ゲーム (Mofuland Animal Game) - Web Edition</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,8 +19,8 @@
         <!-- Header Bar -->
         <header class="header">
           <div class="logo-area">
-            <span class="logo-icon">🍉</span>
-            <h1 class="logo-text">スイカゲーム</h1>
+            <span class="logo-icon">🐾</span>
+            <h1 class="logo-text">動物ゲーム</h1>
           </div>
 
           <div class="header-actions">
@@ -37,7 +37,7 @@
         </header>
 
         <main class="main-content">
-          <!-- Left HUD Column (Scores & Next Fruit) -->
+          <!-- Left HUD Column (Scores & Next Animal) -->
           <aside class="sidebar-panel left-panel">
             <div class="hud-card score-card">
               <div class="score-box">
@@ -71,7 +71,7 @@
           <!-- Right Evolution Chart Panel -->
           <aside class="sidebar-panel right-panel">
             <div class="hud-card evolution-card">
-              <span class="hud-title">進化チャート (EVOLUTION)</span>
+              <span class="hud-title">動物進化チャート (EVOLUTION)</span>
               <div id="evolution-chart" class="evolution-grid">
                 <!-- Dynamically populated by JS -->
               </div>
@@ -85,7 +85,7 @@
         <div class="modal-card">
           <div id="new-record-badge" class="new-record-badge">NEW RECORD! 🎉</div>
           <h2 class="modal-title">GAME OVER</h2>
-          <p class="modal-subtitle">フルーツがあふれてしまいました！</p>
+          <p class="modal-subtitle">動物たちがあふれてしまいました！</p>
 
           <div class="final-stats">
             <div class="stat-row">
@@ -116,19 +116,19 @@
           <div class="rules-list">
             <div class="rule-item">
               <span class="rule-num">1</span>
-              <p>フルーツを箱の中に落とそう！</p>
+              <p>動物たちを箱の中に落とそう！</p>
             </div>
             <div class="rule-item">
               <span class="rule-num">2</span>
-              <p>同じ種類のフルーツがぶつかると、1つ上の大きなフルーツにシンカ（進化）するよ！</p>
+              <p>同じ種類の動物がぶつかると、1つ上の大きな動物にシンカ（進化）するよ！</p>
             </div>
             <div class="rule-item">
               <span class="rule-num">3</span>
-              <p>フルーツが大きくなるほど高得点！めざせ大きなスイカ 🍉！</p>
+              <p>ハムスター 🐹 ➔ ひよこ 🐥 ➔ ねこ 🐱 ➔ ... ➔ 大きなゾウ 🐘 を目指そう！</p>
             </div>
             <div class="rule-item">
               <span class="rule-num">4</span>
-              <p>点線を越えてフルーツがあふれるとゲームオーバー！</p>
+              <p>点線を越えて動物があふれるとゲームオーバー！</p>
             </div>
           </div>
 

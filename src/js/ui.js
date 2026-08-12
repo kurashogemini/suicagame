@@ -1,7 +1,7 @@
-// UI Controller for Suika Game (Modals, Evolution Chart, HUD, Score Displays)
+// UI Controller for Mofuland Animal Game (Modals, Evolution Chart, HUD)
 
-import { FRUITS } from './fruits.js';
-import { drawFruit } from './renderer.js';
+import { ANIMALS } from './animals.js';
+import { drawAnimal } from './renderer.js';
 import { sound } from './audio.js';
 
 export class UIController {
@@ -58,30 +58,28 @@ export class UIController {
     if (!this.evolutionContainer) return;
     this.evolutionContainer.innerHTML = '';
 
-    FRUITS.forEach((fruit, idx) => {
-      const item = document.createElement('div');
-      item.className = 'evolution-item';
-      item.title = `${fruit.nameJa} (${fruit.name}) - ${fruit.score}pt`;
+    ANIMALS.forEach((item, idx) => {
+      const itemEl = document.createElement('div');
+      itemEl.className = 'evolution-item';
+      itemEl.title = `${item.nameJa} (${item.name}) - ${item.score}pt`;
 
       const canvas = document.createElement('canvas');
       canvas.width = 44;
       canvas.height = 44;
       const ctx = canvas.getContext('2d');
 
-      // Draw fruit scaled inside preview canvas
       const scaleRadius = Math.min(18, 8 + idx * 1.1);
-      drawFruit(ctx, 22, 22, scaleRadius, fruit, 0, true);
+      drawAnimal(ctx, 22, 22, scaleRadius, item, 0, true);
 
       const label = document.createElement('span');
       label.className = 'evolution-label';
       label.textContent = `${idx + 1}`;
 
-      item.appendChild(canvas);
-      item.appendChild(label);
-      this.evolutionContainer.appendChild(item);
+      itemEl.appendChild(canvas);
+      itemEl.appendChild(label);
+      this.evolutionContainer.appendChild(itemEl);
 
-      // Add arrow separator except for last item
-      if (idx < FRUITS.length - 1) {
+      if (idx < ANIMALS.length - 1) {
         const arrow = document.createElement('span');
         arrow.className = 'evolution-arrow';
         arrow.textContent = '➔';
@@ -105,16 +103,15 @@ export class UIController {
     const h = this.nextCanvasEl.height;
     this.nextCtx.clearRect(0, 0, w, h);
 
-    const fruitDef = FRUITS[tier];
-    // Scale preview fruit radius to fit nicely inside canvas
-    const radius = Math.min(22, fruitDef.radius * 0.75);
-    drawFruit(this.nextCtx, w / 2, h / 2, radius, fruitDef, 0, true);
+    const itemDef = ANIMALS[tier];
+    const radius = Math.min(22, itemDef.radius * 0.75);
+    drawAnimal(this.nextCtx, w / 2, h / 2, radius, itemDef, 0, true);
   }
 
   showGameOver(stats) {
     if (this.finalScoreEl) this.finalScoreEl.textContent = stats.score.toLocaleString();
     if (this.finalBestEl) this.finalBestEl.textContent = stats.bestScore.toLocaleString();
-    if (this.finalMergedEl) this.finalMergedEl.textContent = stats.fruitsMerged.toString();
+    if (this.finalMergedEl) this.finalMergedEl.textContent = (stats.animalsMerged || stats.fruitsMerged || 0).toString();
 
     if (this.newRecordBadge) {
       this.newRecordBadge.style.display = stats.isNewRecord ? 'inline-block' : 'none';
