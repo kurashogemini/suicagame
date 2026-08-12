@@ -1,9 +1,9 @@
-// Animal Game Engine & Physics Management using Matter.js
+// Sushi Game Engine & Physics Management using Matter.js ("すしころ回転祭")
 
 import Matter from 'matter-js';
 import confetti from 'canvas-confetti';
-import { ANIMALS, getRandomSpawnTier } from './animals.js';
-import { drawAnimal } from './renderer.js';
+import { SUSHI_ITEMS, getRandomSpawnTier } from './sushi.js';
+import { drawSushi } from './renderer.js';
 import { sound } from './audio.js';
 import { ParticleSystem } from './particles.js';
 
@@ -33,15 +33,15 @@ export class GameEngine {
 
     // Game state variables
     this.score = 0;
-    this.bestScore = parseInt(localStorage.getItem('animal_best_score') || '0', 10);
-    this.animalsMerged = 0;
+    this.bestScore = parseInt(localStorage.getItem('sushi_best_score') || '0', 10);
+    this.sushiMerged = 0;
     this.isGameOver = false;
     this.isPaused = false;
     this.canDrop = true;
     this.inDanger = false;
     this.dangerTimer = 0; // seconds spent in danger state
 
-    // Current and Next Dropping Animals
+    // Current and Next Dropping Sushi Items
     this.currentTier = getRandomSpawnTier();
     this.nextTier = getRandomSpawnTier();
     this.pointerX = this.width / 2;
@@ -109,51 +109,50 @@ export class GameEngine {
         const bodyA = pair.bodyA;
         const bodyB = pair.bodyB;
 
-        // Check if both bodies are animals
-        if (bodyA.isAnimal && bodyB.isAnimal) {
+        // Check if both bodies are sushi
+        if (bodyA.isSushi && bodyB.isSushi) {
           if (
-            bodyA.animalTier === bodyB.animalTier &&
+            bodyA.sushiTier === bodyB.sushiTier &&
             !bodyA.isMerged &&
             !bodyB.isMerged
           ) {
-            // Mark merged to prevent double handling in same frame
             bodyA.isMerged = true;
             bodyB.isMerged = true;
 
-            const tier = bodyA.animalTier;
+            const tier = bodyA.sushiTier;
             const midX = (bodyA.position.x + bodyB.position.x) / 2;
             const midY = (bodyA.position.y + bodyB.position.y) / 2;
 
             toRemove.push(bodyA, bodyB);
 
             // Calculate points & update score
-            const addedScore = ANIMALS[tier].score;
+            const addedScore = SUSHI_ITEMS[tier].score;
             this.addScore(addedScore);
-            this.animalsMerged++;
+            this.sushiMerged++;
 
             const nextTier = tier + 1;
 
-            if (nextTier < ANIMALS.length) {
-              // Spawn merged higher tier animal
-              const itemDef = ANIMALS[nextTier];
+            if (nextTier < SUSHI_ITEMS.length) {
+              // Spawn merged higher tier sushi
+              const itemDef = SUSHI_ITEMS[nextTier];
               const newBody = Matter.Bodies.circle(midX, midY, itemDef.radius, {
                 restitution: 0.25,
                 friction: 0.1,
                 density: 0.001 * (1 + nextTier * 0.1),
               });
 
-              newBody.isAnimal = true;
-              newBody.animalTier = nextTier;
+              newBody.isSushi = true;
+              newBody.sushiTier = nextTier;
               newBody.isMerged = false;
 
               Matter.Composite.add(this.engine.world, newBody);
 
               // Sound & visual effects
-              if (nextTier === 10) { // Elephant
+              if (nextTier === 10) { // Chirashi Bowl
                 sound.playWatermelon(); // Grand fanfare
                 confetti({
-                  particleCount: 100,
-                  spread: 80,
+                  particleCount: 120,
+                  spread: 90,
                   origin: { y: 0.6 },
                 });
               } else {
@@ -163,22 +162,21 @@ export class GameEngine {
               this.particles.spawnMergeBurst(midX, midY, itemDef.color);
               this.particles.spawnScorePopup(midX, midY, addedScore);
             } else {
-              // Merge 2 Elephants
+              // Merge 2 Chirashi Bowls
               this.addScore(4096);
               sound.playWatermelon();
               confetti({
-                particleCount: 180,
+                particleCount: 200,
                 spread: 120,
                 origin: { y: 0.5 },
               });
-              this.particles.spawnMergeBurst(midX, midY, '#457B9D', 30);
+              this.particles.spawnMergeBurst(midX, midY, '#D4AF37', 35);
               this.particles.spawnScorePopup(midX, midY, 4096, '#FFD700');
             }
           }
         }
       }
 
-      // Remove merged bodies from world
       for (const body of toRemove) {
         Matter.Composite.remove(this.engine.world, body);
       }
@@ -192,7 +190,6 @@ export class GameEngine {
       return (clientX - rect.left) * scaleX;
     };
 
-    // Touch event helper
     const handleTouch = (e) => {
       if (this.isGameOver || this.isPaused || !e.touches || !e.touches[0]) return;
       e.preventDefault();
@@ -208,8 +205,8 @@ export class GameEngine {
     // Mouse click drop
     this.canvas.addEventListener('click', (e) => {
       if (this.isGameOver || this.isPaused) return;
-      sound.init(); // Ensure Web Audio API unlocks on user gesture
-      this.dropCurrentAnimal();
+      sound.init();
+      this.dropCurrentSushi();
     });
 
     // Touch support (touchstart + touchmove + touchend)
@@ -224,10 +221,10 @@ export class GameEngine {
 
     this.canvas.addEventListener('touchend', (e) => {
       if (this.isGameOver || this.isPaused) return;
-      this.dropCurrentAnimal();
+      this.dropCurrentSushi();
     });
 
-    // Keyboard support (Left/Right arrows to move, Space/Down to drop)
+    // Keyboard support
     window.addEventListener('keydown', (e) => {
       if (this.isGameOver || this.isPaused) return;
       sound.init();
@@ -239,24 +236,24 @@ export class GameEngine {
         this.updatePointerX(this.pointerX + step);
       } else if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        this.dropCurrentAnimal();
+        this.dropCurrentSushi();
       }
     });
   }
 
   updatePointerX(x) {
-    const currentRadius = ANIMALS[this.currentTier].radius;
+    const currentRadius = SUSHI_ITEMS[this.currentTier].radius;
     const minX = this.boxLeft + currentRadius + 5;
     const maxX = this.boxRight - currentRadius - 5;
     this.pointerX = Math.max(minX, Math.min(maxX, x));
   }
 
-  dropCurrentAnimal() {
+  dropCurrentSushi() {
     if (!this.canDrop || this.isGameOver || this.isPaused) return;
 
     this.canDrop = false;
     const tier = this.currentTier;
-    const itemDef = ANIMALS[tier];
+    const itemDef = SUSHI_ITEMS[tier];
 
     // Create physical body
     const body = Matter.Bodies.circle(this.pointerX, this.dropY, itemDef.radius, {
@@ -265,17 +262,15 @@ export class GameEngine {
       density: 0.001 * (1 + tier * 0.1),
     });
 
-    body.isAnimal = true;
-    body.animalTier = tier;
+    body.isSushi = true;
+    body.sushiTier = tier;
     body.isMerged = false;
 
-    // Slight downward velocity
     Matter.Body.setVelocity(body, { x: 0, y: 1.0 });
 
     Matter.Composite.add(this.engine.world, body);
     sound.playDrop();
 
-    // Cooldown before next drop
     setTimeout(() => {
       if (this.isGameOver) return;
       this.currentTier = this.nextTier;
@@ -293,7 +288,7 @@ export class GameEngine {
     this.score += pts;
     if (this.score > this.bestScore) {
       this.bestScore = this.score;
-      localStorage.setItem('animal_best_score', this.bestScore.toString());
+      localStorage.setItem('sushi_best_score', this.bestScore.toString());
     }
     if (this.onScoreUpdate) {
       this.onScoreUpdate(this.score, this.bestScore);
@@ -305,7 +300,7 @@ export class GameEngine {
     let overflow = false;
 
     for (const body of bodies) {
-      if (body.isAnimal && !body.isMerged) {
+      if (body.isSushi && !body.isMerged) {
         const topY = body.position.y - body.circleRadius;
         if (topY <= this.dangerLineY && body.position.y > 0) {
           if (Math.abs(body.velocity.y) < 0.5) {
@@ -338,7 +333,7 @@ export class GameEngine {
       this.onGameOver({
         score: this.score,
         bestScore: this.bestScore,
-        animalsMerged: this.animalsMerged,
+        sushiMerged: this.sushiMerged,
         isNewRecord: this.score === this.bestScore && this.score > 0,
       });
     }
@@ -354,7 +349,7 @@ export class GameEngine {
 
     this.particles.clear();
     this.score = 0;
-    this.animalsMerged = 0;
+    this.sushiMerged = 0;
     this.isGameOver = false;
     this.isPaused = false;
     this.canDrop = true;
@@ -378,7 +373,6 @@ export class GameEngine {
     this.lastTime = time;
 
     if (!this.isPaused && !this.isGameOver) {
-      // Use fixed timestep for rock-solid physics stability
       Matter.Engine.update(this.engine, 1000 / 60);
       this.checkDangerAndGameOver(delta);
     }
@@ -396,12 +390,12 @@ export class GameEngine {
     // 1. Render Container Frame
     this.renderContainer(ctx);
 
-    // 2. Render Physics Animal Bodies
+    // 2. Render Physics Sushi Bodies
     const bodies = Matter.Composite.allBodies(this.engine.world);
     for (const body of bodies) {
-      if (body.isAnimal) {
-        const itemDef = ANIMALS[body.animalTier];
-        drawAnimal(
+      if (body.isSushi) {
+        const itemDef = SUSHI_ITEMS[body.sushiTier];
+        drawSushi(
           ctx,
           body.position.x,
           body.position.y,
@@ -415,9 +409,9 @@ export class GameEngine {
     // 3. Render Particles & Floating Text
     this.particles.draw(ctx);
 
-    // 4. Render Current Dropping Animal Preview & Guide Line
+    // 4. Render Current Dropping Sushi Preview & Guide Line
     if (this.canDrop && !this.isGameOver && !this.isPaused) {
-      const currentItem = ANIMALS[this.currentTier];
+      const currentItem = SUSHI_ITEMS[this.currentTier];
 
       // Dotted Trajectory Line
       ctx.save();
@@ -430,8 +424,8 @@ export class GameEngine {
       ctx.stroke();
       ctx.restore();
 
-      // Top Preview Animal
-      drawAnimal(
+      // Top Preview Sushi
+      drawSushi(
         ctx,
         this.pointerX,
         this.dropY,
