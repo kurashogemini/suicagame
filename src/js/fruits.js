@@ -1,0 +1,163 @@
+// Fruit definitions for Suika Game (スイカゲーム)
+export const FRUITS = [
+  {
+    id: 0,
+    name: 'Cherry',
+    nameJa: 'さくらんぼ',
+    radius: 17,
+    score: 2,
+    color: '#FF3B5C',
+    gradientColor: '#FF6B8B',
+    accentColor: '#D01438',
+    leafColor: '#4CAF50',
+    eyeColor: '#222222',
+    hasStem: true,
+  },
+  {
+    id: 1,
+    name: 'Strawberry',
+    nameJa: 'いちご',
+    radius: 25,
+    score: 4,
+    color: '#FF4D6D',
+    gradientColor: '#FF758F',
+    accentColor: '#C9184A',
+    leafColor: '#38B000',
+    eyeColor: '#222222',
+    hasSeeds: true,
+  },
+  {
+    id: 2,
+    name: 'Grape',
+    nameJa: 'ぶどう',
+    radius: 33,
+    score: 8,
+    color: '#9D4EDD',
+    gradientColor: '#C77DFF',
+    accentColor: '#7B2CBF',
+    leafColor: '#38B000',
+    eyeColor: '#FFFFFF',
+    hasGrapeTexture: true,
+  },
+  {
+    id: 3,
+    name: 'Dekopon',
+    nameJa: 'デコポン',
+    radius: 41,
+    score: 16,
+    color: '#FF9E00',
+    gradientColor: '#FFB703',
+    accentColor: '#E07A00',
+    leafColor: '#38B000',
+    eyeColor: '#222222',
+    hasBump: true,
+  },
+  {
+    id: 4,
+    name: 'Persimmon',
+    nameJa: 'かき',
+    radius: 49,
+    score: 32,
+    color: '#FF6B00',
+    gradientColor: '#FF8800',
+    accentColor: '#CC4E00',
+    leafColor: '#2D6A4F',
+    eyeColor: '#222222',
+    hasStemCap: true,
+  },
+  {
+    id: 5,
+    name: 'Apple',
+    nameJa: 'りんご',
+    radius: 59,
+    score: 64,
+    color: '#EF233C',
+    gradientColor: '#FF5964',
+    accentColor: '#D90429',
+    leafColor: '#38B000',
+    eyeColor: '#222222',
+    hasStem: true,
+  },
+  {
+    id: 6,
+    name: 'Pear',
+    nameJa: 'なし',
+    radius: 69,
+    score: 128,
+    color: '#AACC00',
+    gradientColor: '#D4E157',
+    accentColor: '#80B918',
+    leafColor: '#2D6A4F',
+    eyeColor: '#222222',
+    hasSpots: true,
+  },
+  {
+    id: 7,
+    name: 'Peach',
+    nameJa: 'もも',
+    radius: 81,
+    score: 256,
+    color: '#FFB3C6',
+    gradientColor: '#FFC8DD',
+    accentColor: '#FF85A1',
+    leafColor: '#38B000',
+    eyeColor: '#222222',
+    hasGroove: true,
+  },
+  {
+    id: 8,
+    name: 'Pineapple',
+    nameJa: 'パイナップル',
+    radius: 95,
+    score: 512,
+    color: '#FFBE0B',
+    gradientColor: '#FFD000',
+    accentColor: '#E09F00',
+    leafColor: '#2A9D8F',
+    eyeColor: '#222222',
+    hasDiamondPattern: true,
+  },
+  {
+    id: 9,
+    name: 'Melon',
+    nameJa: 'メロン',
+    radius: 111,
+    score: 1024,
+    color: '#70E000',
+    gradientColor: '#9EF01A',
+    accentColor: '#38B000',
+    leafColor: '#007200',
+    eyeColor: '#222222',
+    hasMeshPattern: true,
+  },
+  {
+    id: 10,
+    name: 'Watermelon',
+    nameJa: 'スイカ',
+    radius: 130,
+    score: 2048,
+    color: '#2B9348',
+    gradientColor: '#52B788',
+    accentColor: '#007200',
+    leafColor: '#004B23',
+    eyeColor: '#FFFFFF',
+    hasStripes: true,
+  },
+];
+
+// Spawning rules: Only fruits of tier 0 to 4 can be spawned at top
+export const SPAWNABLE_TIERS = [0, 1, 2, 3, 4];
+
+export function getRandomSpawnTier() {
+  // Weighted probability: smaller fruits are more common
+  const weights = [0.40, 0.30, 0.15, 0.10, 0.05];
+  const rand = Math.random();
+  let cumulative = 0;
+  for (let i = 0; i < weights.length; i++) {
+    cumulative += weights[i];
+    if (rand < cumulative) {
+      return i;
+    }
+  }
+  return 0;
+}

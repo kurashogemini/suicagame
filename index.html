@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>スイカゲーム (Suika Game) - Web MVP</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <!-- Main Game Container -->
+      <div class="game-wrapper">
+        
+        <!-- Header Bar -->
+        <header class="header">
+          <div class="logo-area">
+            <span class="logo-icon">🍉</span>
+            <h1 class="logo-text">スイカゲーム</h1>
+          </div>
+
+          <div class="header-actions">
+            <button id="how-to-play-btn" class="icon-btn" title="遊び方 (How to Play)">
+              <span>❓</span>
+            </button>
+            <button id="sound-btn" class="icon-btn" title="サウンド切り替え (Mute/Unmute)">
+              <span id="sound-icon">🔊</span>
+            </button>
+            <button id="restart-btn" class="icon-btn" title="やり直す (Restart)">
+              <span>🔄</span>
+            </button>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <!-- Left HUD Column (Scores & Next Fruit) -->
+          <aside class="sidebar-panel left-panel">
+            <div class="hud-card score-card">
+              <div class="score-box">
+                <span class="score-label">SCORE</span>
+                <span id="score-val" class="score-number">0</span>
+              </div>
+              <div class="score-box best-box">
+                <span class="score-label">BEST</span>
+                <span id="best-score-val" class="score-number">0</span>
+              </div>
+            </div>
+
+            <div class="hud-card next-card">
+              <span class="hud-title">NEXT</span>
+              <div class="next-canvas-container">
+                <canvas id="next-canvas" width="80" height="80"></canvas>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Center Game Canvas Container -->
+          <section class="canvas-section">
+            <div class="canvas-wrapper">
+              <canvas id="game-canvas" width="480" height="680"></canvas>
+            </div>
+            <p class="controls-hint">
+              <span>🖱️ マウス移動 / タップで位置調整</span> • <span>クリック / スペースキーで落とす</span>
+            </p>
+          </section>
+
+          <!-- Right Evolution Chart Panel -->
+          <aside class="sidebar-panel right-panel">
+            <div class="hud-card evolution-card">
+              <span class="hud-title">進化チャート (EVOLUTION)</span>
+              <div id="evolution-chart" class="evolution-grid">
+                <!-- Dynamically populated by JS -->
+              </div>
+            </div>
+          </aside>
+        </main>
+      </div>
+
+      <!-- Game Over Modal -->
+      <div id="game-over-modal" class="modal-overlay">
+        <div class="modal-card">
+          <div id="new-record-badge" class="new-record-badge">NEW RECORD! 🎉</div>
+          <h2 class="modal-title">GAME OVER</h2>
+          <p class="modal-subtitle">フルーツがあふれてしまいました！</p>
+
+          <div class="final-stats">
+            <div class="stat-row">
+              <span class="stat-label">スコア (Score)</span>
+              <span id="final-score" class="stat-value highlight">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">ベストスコア (Best)</span>
+              <span id="final-best" class="stat-value">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">シンカ回数 (Merges)</span>
+              <span id="final-merged" class="stat-value">0</span>
+            </div>
+          </div>
+
+          <button id="retry-btn" class="primary-btn">
+            <span>🎮 もう一度あそぶ</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- How to Play Modal -->
+      <div id="how-to-play-modal" class="modal-overlay">
+        <div class="modal-card">
+          <h2 class="modal-title">あそびかた</h2>
+          
+          <div class="rules-list">
+            <div class="rule-item">
+              <span class="rule-num">1</span>
+              <p>フルーツを箱の中に落とそう！</p>
+            </div>
+            <div class="rule-item">
+              <span class="rule-num">2</span>
+              <p>同じ種類のフルーツがぶつかると、1つ上の大きなフルーツにシンカ（進化）するよ！</p>
+            </div>
+            <div class="rule-item">
+              <span class="rule-num">3</span>
+              <p>フルーツが大きくなるほど高得点！めざせ大きなスイカ 🍉！</p>
+            </div>
+            <div class="rule-item">
+              <span class="rule-num">4</span>
+              <p>点線を越えてフルーツがあふれるとゲームオーバー！</p>
+            </div>
+          </div>
+
+          <button id="close-how-to-btn" class="primary-btn">
+            <span>理解した！(OK)</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
