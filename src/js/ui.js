@@ -1,7 +1,7 @@
-// UI Controller for Mofuland Animal Game (動物ゲーム)
+// UI Controller for "すみっコゲーム" (Sumikkogurashi Edition)
 
-import { ANIMALS } from './animals.js';
-import { drawAnimal } from './renderer.js';
+import { SUMIKKO_ITEMS } from './sumikko.js';
+import { drawSumikko } from './renderer.js';
 import { sound } from './audio.js';
 
 export class UIController {
@@ -58,7 +58,7 @@ export class UIController {
     if (!this.evolutionContainer) return;
     this.evolutionContainer.innerHTML = '';
 
-    ANIMALS.forEach((item, idx) => {
+    SUMIKKO_ITEMS.forEach((item, idx) => {
       const itemEl = document.createElement('div');
       itemEl.className = 'evolution-item';
       itemEl.title = `${item.nameJa} (${item.name}) - ${item.score}pt`;
@@ -69,7 +69,7 @@ export class UIController {
       const ctx = canvas.getContext('2d');
 
       const scaleRadius = Math.min(18, 8 + idx * 1.1);
-      drawAnimal(ctx, 22, 22, scaleRadius, item, 0, true);
+      drawSumikko(ctx, 22, 22, scaleRadius, item, 0, true);
 
       const label = document.createElement('span');
       label.className = 'evolution-label';
@@ -79,7 +79,7 @@ export class UIController {
       itemEl.appendChild(label);
       this.evolutionContainer.appendChild(itemEl);
 
-      if (idx < ANIMALS.length - 1) {
+      if (idx < SUMIKKO_ITEMS.length - 1) {
         const arrow = document.createElement('span');
         arrow.className = 'evolution-arrow';
         arrow.textContent = '➔';
@@ -103,15 +103,15 @@ export class UIController {
     const h = this.nextCanvasEl.height;
     this.nextCtx.clearRect(0, 0, w, h);
 
-    const itemDef = ANIMALS[tier];
+    const itemDef = SUMIKKO_ITEMS[tier];
     const radius = Math.min(22, itemDef.radius * 0.75);
-    drawAnimal(this.nextCtx, w / 2, h / 2, radius, itemDef, 0, true);
+    drawSumikko(this.nextCtx, w / 2, h / 2, radius, itemDef, 0, true);
   }
 
   showGameOver(stats) {
     if (this.finalScoreEl) this.finalScoreEl.textContent = stats.score.toLocaleString();
     if (this.finalBestEl) this.finalBestEl.textContent = stats.bestScore.toLocaleString();
-    if (this.finalMergedEl) this.finalMergedEl.textContent = (stats.animalsMerged || 0).toString();
+    if (this.finalMergedEl) this.finalMergedEl.textContent = (stats.sumikkoMerged || 0).toString();
 
     if (this.newRecordBadge) {
       this.newRecordBadge.style.display = stats.isNewRecord ? 'inline-block' : 'none';

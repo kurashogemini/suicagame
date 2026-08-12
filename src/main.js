@@ -9,8 +9,8 @@ function init() {
   const game = new GameEngine(canvas);
   const ui = new UIController(game);
 
-  window.animalGame = game;
-  window.animalUI = ui;
+  window.sumikkoGame = game;
+  window.sumikkoUI = ui;
 }
 
 if (document.readyState === 'loading') {
